@@ -34,8 +34,8 @@ export class Motor implements IMotor {
   private schedule: Schedule = this.schedulePool.create();
   time: Time = 0;
 
-  constructor(private requestAnimationFrame: (callback: FrameRequestCallback) => number = globalThis.requestAnimationFrame,
-    private cancelAnimationFrame: (handle: number) => void = globalThis.cancelAnimationFrame) {
+  constructor(private requestAnimationFrame: (callback: FrameRequestCallback) => number = globalThis.requestAnimationFrame.bind(globalThis),
+    private cancelAnimationFrame: (handle: number) => void = globalThis.cancelAnimationFrame.bind(globalThis)) {
   }
 
   loop<T>(update: Refresh<T>, data: T, frameRate?: number) {
