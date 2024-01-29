@@ -1,8 +1,8 @@
 {
-  "name": "bun-template",
+  "name": "motor-loop",
   "module": "src/index.ts",
-  "description": "Bun template for creating projects using bunjs",
-  "version": "1.0.28",
+  "description": "Motor loop is a typescript library that runs a game loop continuously. Notably, it adapts to frameRate to ensure your game always runs smoothly when the monitor refresh rate goes above or below 60hz.",
+  "version": "1.0.0",
   "keywords": [
     "bun",
     "bunjs",
@@ -15,9 +15,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:jacklehamster/bun-template.git"
+    "url": "https://github.com/jacklehamster/motor-loop.git"
   },
-  "homepage": "https://jacklehamster.github.io/bun-template/",
+  "homepage": "<fill in homepage>",
   "author": {
     "name": "Jack Le Hamster",
     "email": "jacklehamster@gmail.com"
@@ -33,7 +33,7 @@
     "tsc": "tsc",
     "start": "bun run index.ts",
     "test": "bun test",
-    "build": "bun i && bun scripts/update-package.ts && rm *.tsbuildinfo && rm -rf dist/*.* && bun run bundler/bundler.ts && bun run test && bun run build:declaration",
+    "build": "bun i && bun scripts/update-package.ts && rm -rf *.tsbuildinfo && rm -rf dist/*.* && bun run bundler/bundler.ts && bun run test && bun run build:declaration",
     "build:declaration": "tsc --emitDeclarationOnly --project tsconfig.types.json",
     "build:example": "cd example && bun i && bun run build && cd ..",
     "list": "bun run samples/list-scripts.tsx",
@@ -65,5 +65,7 @@
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "bun-pool": "^1.0.5"
+  }
 }

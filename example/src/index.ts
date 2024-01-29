@@ -1,3 +1,3 @@
-import { Hello } from "bun-template";
+import { Motor } from "motor-loop";
 
-export { Hello };
+export { Motor };

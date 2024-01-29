@@ -1,9 +1,9 @@
-import { Hello } from "bun-template";
+import { Motor } from "motor-loop";
 import Bao from "baojs";
 import serveStatic from "serve-static-bun";
 
 const app = new Bao();
-console.log(Hello.hello());
+console.log(new Motor());
 
 app.get("/*any", serveStatic("/", { middlewareMode: "bao" }));
 
