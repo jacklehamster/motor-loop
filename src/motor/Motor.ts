@@ -51,7 +51,7 @@ export class Motor implements IMotor {
   constructor({
     requestAnimationFrame = globalThis.requestAnimationFrame.bind(globalThis),
     cancelAnimationFrame = globalThis.cancelAnimationFrame.bind(globalThis) }: Partial<Props> = {},
-    { framePeriod, frameRate, maxLoopJump = MAX_LOOP_JUMP }: Config) {
+    { framePeriod, frameRate, maxLoopJump = MAX_LOOP_JUMP }: Partial<Config> = {}) {
     this.requestAnimationFrame = requestAnimationFrame;
     this.cancelAnimationFrame = cancelAnimationFrame;
     this.maxLoopJump = maxLoopJump;

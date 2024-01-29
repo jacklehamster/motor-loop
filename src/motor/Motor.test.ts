@@ -9,7 +9,7 @@ describe('Motor', () => {
   beforeEach(() => {
     requestAnimationFrame = jest.fn();
     cancelAnimationFrame = jest.fn();
-    motor = new Motor(requestAnimationFrame, cancelAnimationFrame);
+    motor = new Motor({ requestAnimationFrame, cancelAnimationFrame });
     requestAnimationFrame.mockImplementation((l) => {
       loop = l;
     })
