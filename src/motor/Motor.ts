@@ -15,8 +15,7 @@ import { ObjectPool } from "bun-pool";
  * Continously runs a loop which feeds a world into the GL Engine.
  */
 const MILLIS_IN_SEC = 1000;
-const MAX_DELTA_TIME = MILLIS_IN_SEC / 20;
-const FRAME_PERIOD = 16.5;  //  base of 60fps
+const DEFAULT_FRAME_PERIOD = 16.5;  //  base of 60fps
 const MAX_LOOP_JUMP = 10;
 
 interface Appointment {
@@ -28,14 +27,35 @@ interface Appointment {
 
 type Schedule = Map<Refresh<any>, Appointment>;
 
+interface Props {
+  requestAnimationFrame: (callback: FrameRequestCallback) => number;
+  cancelAnimationFrame: (handle: number) => void;
+}
+
+interface Config {
+  framePeriod: number;
+  frameRate: number;
+  maxLoopJump: number;
+}
+
 export class Motor implements IMotor {
   private readonly apptPool = new AppointmentPool();
   private readonly schedulePool = new MapPool<Refresh<any>, Appointment>();
   private schedule: Schedule = this.schedulePool.create();
   time: Time = 0;
+  private readonly requestAnimationFrame;
+  private readonly cancelAnimationFrame;
+  private readonly framePeriod;
+  private readonly maxLoopJump;
 
-  constructor(private requestAnimationFrame: (callback: FrameRequestCallback) => number = globalThis.requestAnimationFrame.bind(globalThis),
-    private cancelAnimationFrame: (handle: number) => void = globalThis.cancelAnimationFrame.bind(globalThis)) {
+  constructor({
+    requestAnimationFrame = globalThis.requestAnimationFrame.bind(globalThis),
+    cancelAnimationFrame = globalThis.cancelAnimationFrame.bind(globalThis) }: Partial<Props> = {},
+    { framePeriod, frameRate, maxLoopJump = MAX_LOOP_JUMP }: Config) {
+    this.requestAnimationFrame = requestAnimationFrame;
+    this.cancelAnimationFrame = cancelAnimationFrame;
+    this.maxLoopJump = maxLoopJump;
+    this.framePeriod = framePeriod ?? (frameRate ? 1000 / frameRate : undefined) ?? DEFAULT_FRAME_PERIOD;
   }
 
   loop<T>(update: Refresh<T>, data: T, frameRate?: number) {
@@ -52,7 +72,7 @@ export class Motor implements IMotor {
       appt.data = data;
     }
     if (future) {
-      appt.meetingTime = this.time + FRAME_PERIOD;
+      appt.meetingTime = this.time + DEFAULT_FRAME_PERIOD;
     }
   }
 
@@ -75,7 +95,7 @@ export class Motor implements IMotor {
   startLoop() {
     const updatePayload: UpdatePayload = {
       time: 0,
-      deltaTime: 0,
+      deltaTime: this.framePeriod,
       data: undefined,
       renderFrame: true,
       motor: this,
@@ -87,7 +107,6 @@ export class Motor implements IMotor {
     updatePayload.stopUpdate = updatePayload.stopUpdate.bind(updatePayload);
 
     const performUpdate = (time: number, updatePayload: UpdatePayload) => {
-      updatePayload.deltaTime = Math.min(time - updatePayload.time, MAX_DELTA_TIME);
       this.time = updatePayload.time = time;
 
       let agenda: Schedule | undefined = this.schedule;
@@ -142,23 +161,24 @@ export class Motor implements IMotor {
     let timeOffset = 0;
     let gameTime = 0;
 
-    const loop: FrameRequestCallback = (time) => {
-      handle = this.requestAnimationFrame(loop);
-      let loopCount = Math.ceil((time + timeOffset - gameTime) / FRAME_PERIOD);
-      if (loopCount > MAX_LOOP_JUMP) {
-        timeOffset -= FRAME_PERIOD * (loopCount - MAX_LOOP_JUMP);
-        loopCount = MAX_LOOP_JUMP;
+    const { maxLoopJump, framePeriod, requestAnimationFrame, cancelAnimationFrame } = this;
+    const loop: FrameRequestCallback = time => {
+      handle = requestAnimationFrame(loop);
+      let loopCount = Math.ceil((time + timeOffset - gameTime) / framePeriod);
+      if (loopCount > maxLoopJump) {
+        timeOffset -= framePeriod * (loopCount - maxLoopJump);
+        loopCount = maxLoopJump;
       }
       for (let i = 0; i < loopCount; i++) {
-        gameTime += FRAME_PERIOD;
+        gameTime += framePeriod;
         updatePayload.renderFrame = i === loopCount - 1;
         performUpdate(gameTime, updatePayload);
       }
     };
-    let handle = this.requestAnimationFrame(loop);
+    let handle = requestAnimationFrame(loop);
 
     this.stopLoop = () => {
-      this.cancelAnimationFrame(handle);
+      cancelAnimationFrame(handle);
       this.stopLoop = undefined;
       this.apptPool.clear();
     };
