@@ -1,18 +1,17 @@
+import { FixedFramerateLoop } from 'fixed-framerate-loop';
 import { Motor } from './Motor';
 
 describe('Motor', () => {
   let motor: Motor;
   let requestAnimationFrame: jest.Mock;
-  let cancelAnimationFrame;
-  let loop;
+  let cancelAnimationFrame: jest.Mock<any, any, any>;
+  let loop: FrameRequestCallback;
 
   beforeEach(() => {
     requestAnimationFrame = jest.fn();
     cancelAnimationFrame = jest.fn();
-    motor = new Motor({ requestAnimationFrame, cancelAnimationFrame });
-    requestAnimationFrame.mockImplementation((l) => {
-      loop = l;
-    })
+    motor = new Motor({ loopExecutor: new FixedFramerateLoop({ requestAnimationFrame, cancelAnimationFrame }) });
+    requestAnimationFrame.mockImplementation((l) => loop = l)
   });
 
   afterEach(() => {
@@ -54,6 +53,4 @@ describe('Motor', () => {
 
     expect(mockRefresh.refresh).not.toHaveBeenCalled();
   });
-
-  // Add more tests as needed for other methods and scenarios
 });

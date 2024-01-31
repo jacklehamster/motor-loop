@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/jacklehamster/motor-loop.git"
+    "url": "git@github.com:jacklehamster/motor-loop.git"
   },
   "homepage": "<fill in homepage>",
   "author": {
@@ -65,6 +65,6 @@
   },
   "dependencies": {
     "bun-pool": "^1.0.5",
-    "fixed-framerate-loop": "^1.0.6"
+    "fixed-framerate-loop": "^1.0.8"
   }
 }

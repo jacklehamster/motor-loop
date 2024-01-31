@@ -10,14 +10,12 @@ import { Duration } from "./Time";
 import { Priority } from "./Priority";
 import { MapPool } from "bun-pool";
 import { ObjectPool } from "bun-pool";
-import { IFrameAnimationCallbacks, FixedFramerateLoop } from "fixed-framerate-loop"
+import { IFrameAnimationCallbacks, FixedFramerateLoop, ILoopExecutor, DEFAULT_FRAME_DURATION } from "fixed-framerate-loop"
 
 /**
  * Continously runs a loop which feeds a world into the GL Engine.
  */
 const MILLIS_IN_SEC = 1000;
-const DEFAULT_FRAME_DURATION = 16.5;  //  base of 60fps
-const MAX_LOOP_JUMP = 10;
 
 interface Appointment {
   meetingTime: Time;
@@ -31,23 +29,28 @@ type Schedule = Map<Refresh<any>, Appointment>;
 interface Config {
   frameDuration: number;
   frameRate: number;
-  maxLoopJump: number;
+}
+
+interface Props {
+  loopExecutor: ILoopExecutor;
+}
+
+interface Config {
+  frameRate: number;
+  frameDuration: number;
 }
 
 export class Motor implements IMotor {
+  time: Time = 0;
   private readonly apptPool = new AppointmentPool();
   private readonly schedulePool = new MapPool<Refresh<any>, Appointment>();
   private schedule: Schedule = this.schedulePool.create();
-  time: Time = 0;
-  private readonly frameDuration;
-  private readonly fixedFrameRateLoop;
+  private readonly loopExecutor: ILoopExecutor;
+  private readonly frameDuration: number;
 
-  constructor(frameAnimationCallbacks: Partial<IFrameAnimationCallbacks> = {},
-    { frameDuration, frameRate, maxLoopJump = MAX_LOOP_JUMP }: Partial<Config> = {}) {
-    this.fixedFrameRateLoop = new FixedFramerateLoop(frameAnimationCallbacks, {
-      maxLoopJump,
-    });
-    this.frameDuration = frameDuration ?? (frameRate ? 1000 / frameRate : undefined) ?? DEFAULT_FRAME_DURATION;
+  constructor({ loopExecutor }: Partial<Props> = {}, config: Partial<Config> = {}) {
+    this.loopExecutor = loopExecutor ?? new FixedFramerateLoop();
+    this.frameDuration = config.frameDuration ?? (config.frameRate ? (1000 - config.frameRate) : undefined) ?? DEFAULT_FRAME_DURATION;
   }
 
   loop<T>(update: Refresh<T>, data: T, frameRate?: number) {
@@ -148,13 +151,11 @@ export class Motor implements IMotor {
       }
     }
 
-    const stopLoop = this.fixedFrameRateLoop.startLoop((time, render) => {
+    const stopLoop = this.loopExecutor.startLoop((time, render) => {
       this.time = updatePayload.time = time;
       updatePayload.renderFrame = render;
       performUpdate(updatePayload);
-    }, {
-      frameDuration: this.frameDuration,
-    });
+    }, { frameDuration: this.frameDuration });
 
     this.stopLoop = () => {
       stopLoop();
