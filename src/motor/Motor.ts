@@ -10,7 +10,7 @@ import { Duration } from "./Time";
 import { Priority } from "./Priority";
 import { MapPool } from "bun-pool";
 import { ObjectPool } from "bun-pool";
-import { IFrameAnimationCallbacks, FixedFramerateLoop, ILoopExecutor, DEFAULT_FRAME_DURATION } from "fixed-framerate-loop"
+import { FixedFramerateLoop, ILoopExecutor, DEFAULT_FRAME_DURATION } from "fixed-framerate-loop"
 
 /**
  * Continously runs a loop which feeds a world into the GL Engine.
