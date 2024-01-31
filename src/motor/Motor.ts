@@ -10,12 +10,13 @@ import { Duration } from "./Time";
 import { Priority } from "./Priority";
 import { MapPool } from "bun-pool";
 import { ObjectPool } from "bun-pool";
+import { IFrameAnimationCallbacks, FixedFramerateLoop } from "fixed-framerate-loop"
 
 /**
  * Continously runs a loop which feeds a world into the GL Engine.
  */
 const MILLIS_IN_SEC = 1000;
-const DEFAULT_FRAME_PERIOD = 16.5;  //  base of 60fps
+const DEFAULT_FRAME_DURATION = 16.5;  //  base of 60fps
 const MAX_LOOP_JUMP = 10;
 
 interface Appointment {
@@ -27,13 +28,8 @@ interface Appointment {
 
 type Schedule = Map<Refresh<any>, Appointment>;
 
-interface Props {
-  requestAnimationFrame: (callback: FrameRequestCallback) => number;
-  cancelAnimationFrame: (handle: number) => void;
-}
-
 interface Config {
-  framePeriod: number;
+  frameDuration: number;
   frameRate: number;
   maxLoopJump: number;
 }
@@ -43,19 +39,15 @@ export class Motor implements IMotor {
   private readonly schedulePool = new MapPool<Refresh<any>, Appointment>();
   private schedule: Schedule = this.schedulePool.create();
   time: Time = 0;
-  private readonly requestAnimationFrame;
-  private readonly cancelAnimationFrame;
-  private readonly framePeriod;
-  private readonly maxLoopJump;
+  private readonly frameDuration;
+  private readonly fixedFrameRateLoop;
 
-  constructor({
-    requestAnimationFrame = globalThis.requestAnimationFrame.bind(globalThis),
-    cancelAnimationFrame = globalThis.cancelAnimationFrame.bind(globalThis) }: Partial<Props> = {},
-    { framePeriod, frameRate, maxLoopJump = MAX_LOOP_JUMP }: Partial<Config> = {}) {
-    this.requestAnimationFrame = requestAnimationFrame;
-    this.cancelAnimationFrame = cancelAnimationFrame;
-    this.maxLoopJump = maxLoopJump;
-    this.framePeriod = framePeriod ?? (frameRate ? 1000 / frameRate : undefined) ?? DEFAULT_FRAME_PERIOD;
+  constructor(frameAnimationCallbacks: Partial<IFrameAnimationCallbacks> = {},
+    { frameDuration, frameRate, maxLoopJump = MAX_LOOP_JUMP }: Partial<Config> = {}) {
+    this.fixedFrameRateLoop = new FixedFramerateLoop(frameAnimationCallbacks, {
+      maxLoopJump,
+    });
+    this.frameDuration = frameDuration ?? (frameRate ? 1000 / frameRate : undefined) ?? DEFAULT_FRAME_DURATION;
   }
 
   loop<T>(update: Refresh<T>, data: T, frameRate?: number) {
@@ -72,7 +64,7 @@ export class Motor implements IMotor {
       appt.data = data;
     }
     if (future) {
-      appt.meetingTime = this.time + DEFAULT_FRAME_PERIOD;
+      appt.meetingTime = this.time + DEFAULT_FRAME_DURATION;
     }
   }
 
@@ -95,7 +87,7 @@ export class Motor implements IMotor {
   startLoop() {
     const updatePayload: UpdatePayload = {
       time: 0,
-      deltaTime: this.framePeriod,
+      deltaTime: this.frameDuration,
       data: undefined,
       renderFrame: true,
       motor: this,
@@ -106,9 +98,7 @@ export class Motor implements IMotor {
     };
     updatePayload.stopUpdate = updatePayload.stopUpdate.bind(updatePayload);
 
-    const performUpdate = (time: number, updatePayload: UpdatePayload) => {
-      this.time = updatePayload.time = time;
-
+    const performUpdate = (updatePayload: UpdatePayload) => {
       let agenda: Schedule | undefined = this.schedule;
       const futureSchedule = this.schedulePool.create();
       const finalSchedule = this.schedulePool.create();
@@ -121,7 +111,7 @@ export class Motor implements IMotor {
         }
         this.schedule = this.schedulePool.create();
         agenda.forEach((appt, update) => {
-          if (time < appt.meetingTime) {
+          if (updatePayload.time < appt.meetingTime) {
             futureSchedule.set(update, appt);
             return;
           }
@@ -133,7 +123,7 @@ export class Motor implements IMotor {
           updatePayload.refresher = update;
           update.refresh(updatePayload);
           if (appt.period) {
-            appt.meetingTime = Math.max(appt.meetingTime + appt.period, time);
+            appt.meetingTime = Math.max(appt.meetingTime + appt.period, updatePayload.time);
             futureSchedule.set(update, appt);
           } else {
             this.apptPool.recycle(appt);
@@ -158,27 +148,16 @@ export class Motor implements IMotor {
       }
     }
 
-    let timeOffset = 0;
-    let gameTime = 0;
-
-    const { maxLoopJump, framePeriod, requestAnimationFrame, cancelAnimationFrame } = this;
-    const loop: FrameRequestCallback = time => {
-      handle = requestAnimationFrame(loop);
-      let loopCount = Math.ceil((time + timeOffset - gameTime) / framePeriod);
-      if (loopCount > maxLoopJump) {
-        timeOffset -= framePeriod * (loopCount - maxLoopJump);
-        loopCount = maxLoopJump;
-      }
-      for (let i = 0; i < loopCount; i++) {
-        gameTime += framePeriod;
-        updatePayload.renderFrame = i === loopCount - 1;
-        performUpdate(gameTime, updatePayload);
-      }
-    };
-    let handle = requestAnimationFrame(loop);
+    const stopLoop = this.fixedFrameRateLoop.startLoop((time, render) => {
+      this.time = updatePayload.time = time;
+      updatePayload.renderFrame = render;
+      performUpdate(updatePayload);
+    }, {
+      frameDuration: this.frameDuration,
+    });
 
     this.stopLoop = () => {
-      cancelAnimationFrame(handle);
+      stopLoop();
       this.stopLoop = undefined;
       this.apptPool.clear();
     };
