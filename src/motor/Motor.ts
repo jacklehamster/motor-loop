@@ -50,7 +50,7 @@ export class Motor implements IMotor {
 
   constructor({ loopExecutor }: Partial<Props> = {}, config: Partial<Config> = {}) {
     this.loopExecutor = loopExecutor ?? new FixedFramerateLoop();
-    this.frameDuration = config.frameDuration ?? (config.frameRate ? (1000 - config.frameRate) : undefined) ?? DEFAULT_FRAME_DURATION;
+    this.frameDuration = config.frameDuration ?? (config.frameRate ? (1000 / config.frameRate) : undefined) ?? DEFAULT_FRAME_DURATION;
   }
 
   loop<T>(update: Refresh<T>, data: T, frameRate?: number) {
