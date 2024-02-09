@@ -108,7 +108,7 @@ export class Motor implements IMotor {
 
       let limit = 100;
       let final = false;
-      while (agenda?.size) {
+      while (agenda) {
         if (limit-- < 0) {
           throw new Error("We keep scheduling updates within updates.");
         }
