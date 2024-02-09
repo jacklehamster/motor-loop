@@ -96,12 +96,16 @@ export class Motor implements IMotor {
       motor: this,
       refresher: { refresh: () => { } },
       stopUpdate() {
-        this.motor.stopUpdate(this.refresher);
+        this.stopped = true;
       },
+      stopped: false,
     };
     updatePayload.stopUpdate = updatePayload.stopUpdate.bind(updatePayload);
 
     const performUpdate = (updatePayload: UpdatePayload) => {
+      if (!this.schedule.size) {
+        return;
+      }
       let agenda: Schedule | undefined = this.schedule;
       const futureSchedule = this.schedulePool.create();
       const finalSchedule = this.schedulePool.create();
@@ -124,8 +128,9 @@ export class Motor implements IMotor {
           }
           updatePayload.data = appt.data;
           updatePayload.refresher = update;
+          updatePayload.stopped = false;
           update.refresh(updatePayload);
-          if (appt.period && this.schedule.has(update)) {
+          if (appt.period && !updatePayload.stopped) {
             appt.meetingTime = Math.max(appt.meetingTime + appt.period, updatePayload.time);
             futureSchedule.set(update, appt);
           } else {

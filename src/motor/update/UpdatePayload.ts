@@ -10,5 +10,6 @@ export interface UpdatePayload<T = undefined> {
   renderFrame: boolean;
   motor: IMotor;
   refresher: Refresh;
+  stopped: boolean;
   stopUpdate(): void;
 }
