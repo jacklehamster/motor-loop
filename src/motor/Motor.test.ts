@@ -30,13 +30,10 @@ describe('Motor', () => {
     motor.startLoop();
     loop(100);
 
-    // You can add assertions here based on your expectations
-    // For example:
     expect(mockUpdate.refresh).toHaveBeenCalledWith(expect.objectContaining({
       deltaTime: expect.any(Number),
       data: updateData,
       renderFrame: true,
-      motor: motor,
       refresher: mockUpdate,
     }));
   });

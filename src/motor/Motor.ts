@@ -93,7 +93,6 @@ export class Motor implements IMotor {
       deltaTime: this.frameDuration,
       data: undefined,
       renderFrame: true,
-      motor: this,
       refresher: { refresh: () => { } },
       stopUpdate() {
         this.stopped = true;
