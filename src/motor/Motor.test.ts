@@ -1,5 +1,6 @@
 import { FixedFramerateLoop } from 'fixed-framerate-loop';
 import { Motor } from './Motor';
+import { UpdatePayload } from './update/UpdatePayload';
 
 describe('Motor', () => {
   let motor: Motor;
@@ -20,10 +21,10 @@ describe('Motor', () => {
   });
 
   it('should schedule and execute a single update', () => {
-    const mockRefresh = { refresh: jest.fn() };
+    const mockUpdate = { refresh: jest.fn() };
     const updateData = 'testData';
 
-    motor.loop(mockRefresh, updateData, 60);
+    motor.loop(mockUpdate, updateData, 60);
 
     // Manually trigger the loop
     motor.startLoop();
@@ -31,26 +32,47 @@ describe('Motor', () => {
 
     // You can add assertions here based on your expectations
     // For example:
-    expect(mockRefresh.refresh).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockUpdate.refresh).toHaveBeenCalledWith(expect.objectContaining({
       deltaTime: expect.any(Number),
       data: updateData,
       renderFrame: true,
       motor: motor,
-      refresher: mockRefresh,
+      refresher: mockUpdate,
     }));
   });
 
   it('should stop the scheduled update when stopUpdate is called', () => {
-    const mockRefresh = { refresh: jest.fn() };
+    const mockUpdate = { refresh: jest.fn() };
     const updateData = 42;
 
-    motor.loop(mockRefresh, updateData, 60);
-    motor.stopUpdate(mockRefresh);
+    motor.loop(mockUpdate, updateData, 60);
+    motor.stopUpdate(mockUpdate);
 
     // Manually trigger the loop
     motor.startLoop();
     loop(100);
 
-    expect(mockRefresh.refresh).not.toHaveBeenCalled();
+    expect(mockUpdate.refresh).not.toHaveBeenCalled();
+  });
+
+  it('should stop the scheduled update when stopUpdate is called from refresh', () => {
+    const mockUpdate = {
+      refresh: jest.fn().mockImplementation((payload: UpdatePayload) => {
+        payload.stopUpdate();
+      })
+    };
+    const updateData = 42;
+
+    //  dummy
+    motor.loop({ refresh: () => { } }, updateData, 60);
+
+    motor.loop(mockUpdate, updateData, 60);
+
+    // Manually trigger the loop
+    motor.startLoop();
+    loop(100);
+    loop(200);
+
+    expect(mockUpdate.refresh).toHaveBeenCalledTimes(1);
   });
 });
