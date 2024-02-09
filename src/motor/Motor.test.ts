@@ -57,14 +57,11 @@ describe('Motor', () => {
 
   it('should stop the scheduled update when stopUpdate is called from refresh', () => {
     const mockUpdate = {
-      refresh: jest.fn().mockImplementation((payload: UpdatePayload) => {
-        payload.stopUpdate();
+      refresh: jest.fn().mockImplementation(({ stopUpdate }: UpdatePayload) => {
+        stopUpdate();
       })
     };
     const updateData = 42;
-
-    //  dummy
-    motor.loop({ refresh: () => { } }, updateData, 60);
 
     motor.loop(mockUpdate, updateData, 60);
 

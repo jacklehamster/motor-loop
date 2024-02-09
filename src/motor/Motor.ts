@@ -125,7 +125,7 @@ export class Motor implements IMotor {
           updatePayload.data = appt.data;
           updatePayload.refresher = update;
           update.refresh(updatePayload);
-          if (appt.period) {
+          if (appt.period && this.schedule.has(update)) {
             appt.meetingTime = Math.max(appt.meetingTime + appt.period, updatePayload.time);
             futureSchedule.set(update, appt);
           } else {
