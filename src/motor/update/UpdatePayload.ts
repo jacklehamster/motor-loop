@@ -7,7 +7,7 @@ export interface UpdatePayload<T = undefined> {
   deltaTime: Duration;
   data: T;
   renderFrame: boolean;
-  refresher: Refresh;
+  refresher: Refresh<T>;
   stopped: boolean;
   stopUpdate(): void;
 }
