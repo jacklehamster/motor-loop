@@ -2,7 +2,7 @@
   "name": "motor-loop",
   "module": "src/index.ts",
   "description": "Motor loop is a typescript library that runs a game loop continuously. Notably, it adapts to frameRate to ensure your game always runs smoothly when the monitor refresh rate goes above or below 60hz.",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "keywords": [
     "bun",
     "bunjs",
