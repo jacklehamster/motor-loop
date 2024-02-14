@@ -1,5 +1,5 @@
 import { Duration, Time } from "../Time";
-import { Refresh } from "./Refresh";
+import { Cycle } from "./Cycle";
 
 
 export interface UpdatePayload<T = undefined> {
@@ -7,7 +7,7 @@ export interface UpdatePayload<T = undefined> {
   deltaTime: Duration;
   data: T;
   renderFrame: boolean;
-  refresher: Refresh<T>;
+  cycle: Cycle<T>;
   stopped: boolean;
   stopUpdate(): void;
 }

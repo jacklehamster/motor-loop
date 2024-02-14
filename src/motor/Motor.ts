@@ -3,7 +3,7 @@
 /// <reference lib="dom.iterable" />
 
 import { Time } from "./Time";
-import { Refresh } from "./update/Refresh";
+import { Cycle } from "./update/Cycle";
 import { UpdatePayload } from "./update/UpdatePayload";
 import { IMotor } from "./IMotor";
 import { Duration } from "./Time";
@@ -24,7 +24,7 @@ interface Appointment {
   data: any;
 }
 
-type Schedule = Map<Refresh<any>, Appointment>;
+type Schedule = Map<Cycle<any>, Appointment>;
 
 interface Config {
   frameDuration: number;
@@ -43,7 +43,7 @@ interface Config {
 export class Motor implements IMotor {
   time: Time = 0;
   private readonly apptPool = new AppointmentPool();
-  private readonly schedulePool = new MapPool<Refresh<any>, Appointment>();
+  private readonly schedulePool = new MapPool<Cycle<any>, Appointment>();
   private schedule: Schedule = this.schedulePool.create();
   private readonly loopExecutor: ILoopExecutor;
   private readonly frameDuration: number;
@@ -53,11 +53,11 @@ export class Motor implements IMotor {
     this.frameDuration = config.frameDuration ?? (config.frameRate ? (1000 / config.frameRate) : undefined) ?? DEFAULT_FRAME_DURATION;
   }
 
-  loop<T>(update: Refresh<T>, data: T, frameRate?: number) {
+  loop<T>(update: Cycle<T>, data: T, frameRate?: number) {
     this.scheduleUpdate<T>(update, data, frameRate ?? 1000);
   }
 
-  scheduleUpdate<T>(update: Refresh<T>, data?: T, refreshRate: number = 0, future?: boolean) {
+  scheduleUpdate<T>(update: Cycle<T>, data?: T, refreshRate: number = 0, future?: boolean) {
     let appt = this.schedule.get(update);
     if (!appt) {
       this.schedule.set(update, appt = this.apptPool.create(refreshRate, data));
@@ -71,7 +71,7 @@ export class Motor implements IMotor {
     }
   }
 
-  stopUpdate<T>(update: Refresh<T>) {
+  stopUpdate<T>(update: Cycle<T>) {
     const appt = this.schedule.get(update);
     if (appt) {
       this.apptPool.recycle(appt);
@@ -93,7 +93,7 @@ export class Motor implements IMotor {
       deltaTime: this.frameDuration,
       data: undefined,
       renderFrame: true,
-      refresher: { refresh: () => { } },
+      cycle: { refresh: () => { } },
       stopUpdate() {
         this.stopped = true;
       },
@@ -126,7 +126,7 @@ export class Motor implements IMotor {
             return;
           }
           updatePayload.data = appt.data;
-          updatePayload.refresher = update;
+          updatePayload.cycle = update;
           updatePayload.stopped = false;
           update.refresh(updatePayload);
           if (appt.period && !updatePayload.stopped) {

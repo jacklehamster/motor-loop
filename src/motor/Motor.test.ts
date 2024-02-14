@@ -21,20 +21,20 @@ describe('Motor', () => {
   });
 
   it('should schedule and execute a single update', () => {
-    const mockUpdate = { refresh: jest.fn() };
+    const mockCycle = { refresh: jest.fn() };
     const updateData = 'testData';
 
-    motor.loop(mockUpdate, updateData, 60);
+    motor.loop(mockCycle, updateData, 60);
 
     // Manually trigger the loop
     motor.startLoop();
     loop(100);
 
-    expect(mockUpdate.refresh).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockCycle.refresh).toHaveBeenCalledWith(expect.objectContaining({
       deltaTime: expect.any(Number),
       data: updateData,
       renderFrame: true,
-      refresher: mockUpdate,
+      cycle: mockCycle,
     }));
   });
 
