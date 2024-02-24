@@ -53,14 +53,14 @@ export class Motor implements IMotor {
     this.frameDuration = config.frameDuration ?? (config.frameRate ? (1000 / config.frameRate) : undefined) ?? DEFAULT_FRAME_DURATION;
   }
 
-  loop<T>(update: Cycle<T>, data: T, frameRate?: number) {
-    this.scheduleUpdate<T>(update, data, frameRate ?? 1000);
+  loop<T>(cycle: Cycle<T>, data: T, frameRate?: number) {
+    this.scheduleUpdate<T>(cycle, data, frameRate ?? 1000);
   }
 
-  scheduleUpdate<T>(update: Cycle<T>, data?: T, refreshRate: number = 0, future?: boolean) {
-    let appt = this.schedule.get(update);
+  scheduleUpdate<T>(cycle: Cycle<T>, data?: T, refreshRate: number = 0, future?: boolean) {
+    let appt = this.schedule.get(cycle);
     if (!appt) {
-      this.schedule.set(update, appt = this.apptPool.create(refreshRate, data));
+      this.schedule.set(cycle, appt = this.apptPool.create(refreshRate, data));
     } else if (appt.frameRate !== refreshRate) {
       appt.frameRate = refreshRate;
       appt.period = refreshRate ? 1000 / refreshRate : 0;
@@ -71,12 +71,12 @@ export class Motor implements IMotor {
     }
   }
 
-  stopUpdate<T>(update: Cycle<T>) {
-    const appt = this.schedule.get(update);
+  stopUpdate<T>(cycle: Cycle<T>) {
+    const appt = this.schedule.get(cycle);
     if (appt) {
       this.apptPool.recycle(appt);
     }
-    this.schedule.delete(update);
+    this.schedule.delete(cycle);
   }
 
   deactivate(): void {
