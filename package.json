@@ -60,7 +60,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "bun-pool": "^1.0.9",
+    "dok-types": "^1.0.9",
     "fixed-framerate-loop": "^1.0.9"
   }
 }
