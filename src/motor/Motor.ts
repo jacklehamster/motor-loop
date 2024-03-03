@@ -122,11 +122,11 @@ export class Motor implements IMotor {
 
           if (updatePayload.time < appt.meetingTime) {
             futureSchedule.set(update, appt);
-            return;
+            continue;
           }
           if (!final && update.priority === Priority.LAST) {
             finalSchedule.set(update, appt);  //  defer
-            return;
+            continue;
           }
           updatePayload.data = appt.data;
           updatePayload.cycle = update;
