@@ -116,7 +116,10 @@ export class Motor implements IMotor {
           throw new Error("We keep scheduling updates within updates.");
         }
         this.schedule = this.schedulePool.create();
-        agenda.forEach((appt, update) => {
+        for (const entry of agenda) {
+          const update = entry[0];
+          const appt = entry[1];
+
           if (updatePayload.time < appt.meetingTime) {
             futureSchedule.set(update, appt);
             return;
@@ -135,7 +138,7 @@ export class Motor implements IMotor {
           } else {
             this.apptPool.recycle(appt);
           }
-        });
+        }
         this.schedulePool.recycle(agenda);
 
         //  agenda complete. Check if other updates got scheduled
