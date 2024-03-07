@@ -79,14 +79,6 @@ export class Motor implements IMotor {
     this.schedule.delete(cycle);
   }
 
-  deactivate(): void {
-    this.stopLoop?.();
-  }
-
-  activate() {
-    this.startLoop();
-  }
-
   startLoop() {
     const updatePayload: UpdatePayload = {
       time: 0,

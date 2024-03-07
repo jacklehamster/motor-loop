@@ -60,7 +60,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "dok-types": "^1.0.9",
-    "fixed-framerate-loop": "^1.0.9"
+    "fixed-framerate-loop": "^1.0.10"
   }
 }
