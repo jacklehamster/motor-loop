@@ -43,6 +43,7 @@
     "dist"
   ],
   "devDependencies": {
+    "@dobuki/autocommit": "^1.0.15",
     "@dobuki/dev-dependencies": "^1.0.4"
   },
   "dependencies": {
