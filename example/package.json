@@ -8,15 +8,10 @@
     "build-icon": "png-to-ico ../icon.png > favicon.ico"
   },
   "devDependencies": {
-    "bun-types": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
+    "bun-types": "latest",
     "baojs": "^0.2.1",
     "png-to-ico": "^2.1.8",
     "serve-static-bun": "^0.5.3",
-    "motor-loop": "file:.."
+    "motor-loop": "link:motor-loop"
   }
 }

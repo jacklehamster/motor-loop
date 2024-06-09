@@ -38,6 +38,22 @@ describe('Motor', () => {
     }));
   });
 
+  it('should execute update. No updateData', () => {
+    const mockCycle = { refresh: jest.fn() };
+
+    motor.loop(mockCycle, undefined, 60);
+
+    // Manually trigger the loop
+    motor.startLoop();
+    loop(100);
+
+    expect(mockCycle.refresh).toHaveBeenCalledWith(expect.objectContaining({
+      deltaTime: expect.any(Number),
+      renderFrame: true,
+      cycle: mockCycle,
+    }));
+  });
+
   it('should stop the scheduled update when stopUpdate is called', () => {
     const mockUpdate = { refresh: jest.fn() };
     const updateData = 42;
