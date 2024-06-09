@@ -44,7 +44,7 @@
   ],
   "devDependencies": {
     "@dobuki/autocommit": "^1.0.15",
-    "@dobuki/dev-dependencies": "^1.0.4"
+    "@dobuki/dev-dependencies": "^1.0.5"
   },
   "dependencies": {
     "bun-pool": "^1.0.9",
