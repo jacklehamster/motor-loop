@@ -48,6 +48,6 @@
   },
   "dependencies": {
     "bun-pool": "^1.0.9",
-    "fixed-framerate-loop": "^1.0.10"
+    "fixed-framerate-loop": "^1.0.11"
   }
 }
